@@ -17,16 +17,20 @@ app.use(express.json());
 //   })
 // );
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
+  res.status(200).send();
 });
 
 app.use("/api", require("./routes/index"));
 
 app.use(express.static(path.join(__dirname, "/public")));
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 db.on("error", console.error.bind(console, "Connection Error :- "));
 db.once("open", (error) => {
