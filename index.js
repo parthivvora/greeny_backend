@@ -8,7 +8,7 @@ const chalk = require("chalk");
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://greeny-admin-panel.vercel.app/"],
+    origin: ["http://localhost:3000", "https://greeny-admin-panel.vercel.app"],
     methods: ["POST", "GET", "DELETE", "PUT"],
   })
 );
