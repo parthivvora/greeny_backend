@@ -8,17 +8,14 @@ const chalk = require("chalk");
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://greeny-admin-panel.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://greeny-admin-panel.vercel.app",
+    ],
     methods: ["POST", "GET", "DELETE", "PUT"],
   })
 );
-
-// app.options("*", (req, res) => {
-//   res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   res.status(200).send();
-// });
 
 app.use("/api", require("./routes/index"));
 

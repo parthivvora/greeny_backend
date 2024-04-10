@@ -4,10 +4,12 @@ const {
   responseStatusCode,
 } = require("../helper/responseHelper");
 const productModel = require("../models/product");
+const productReviewModel = require("../models/productReview");
 const fs = require("fs");
 const {
   addProductValidation,
-} = require("../validation/product.validation.js.validation");
+  addProductReviewValidation,
+} = require("../validation/product.validation");
 
 // Add products by Admin
 exports.addProducts = async (req, res) => {
@@ -152,6 +154,27 @@ exports.getAllSingleProductData = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "productreviews",
+          localField: "_id",
+          foreignField: "productId",
+          as: "productReviewData",
+        },
+      },
+      {
+        $addFields: {
+          totalReviews: {
+            $size: {
+              $filter: {
+                input: "$productReviewData",
+                as: "review",
+                cond: { $eq: ["$$review.isDeleted", false] },
+              },
+            },
+          },
+        },
+      },
+      {
         $project: {
           "brandDetail.totalItems": 0,
           "brandDetail.brandImage": 0,
@@ -159,6 +182,9 @@ exports.getAllSingleProductData = async (req, res) => {
           "brandDetail.createdAt": 0,
           "brandDetail.updatedAt": 0,
           "brandDetail.__v": 0,
+          "productReviewData.email": 0,
+          "productReviewData.updatedAt": 0,
+          "productReviewData.__v": 0,
           __v: 0,
           productBrand: 0,
         },
@@ -308,6 +334,78 @@ exports.getCategoryProduct = async (req, res) => {
     });
   } catch (error) {
     console.log("🚀 ~ exports.getCategoryProduct= ~ error:", error);
+    return res.status(responseStatusCode.INTERNAL_SERVER).json({
+      status: responseStatusText.ERROR,
+      message: error.message,
+    });
+  }
+};
+
+// Add products review by User using productId
+exports.addProductsReviews = async (req, res) => {
+  try {
+    const { error, value } = addProductReviewValidation.validate(req.body);
+    if (error) {
+      return res.status(responseStatusCode.FORBIDDEN).json({
+        status: responseStatusText.ERROR,
+        message: error.details[0].message,
+      });
+    }
+    await productReviewModel.create(value);
+    return res.status(responseStatusCode.SUCCESS).json({
+      status: responseStatusText.SUCCESS,
+      message: "Your review is added successfully...!",
+    });
+  } catch (error) {
+    console.log("🚀 ~ exports.addProductsReviews= ~ error:", error);
+    return res.status(responseStatusCode.INTERNAL_SERVER).json({
+      status: responseStatusText.ERROR,
+      message: error.message,
+    });
+  }
+};
+
+// Get all products review by Admin
+exports.getAllProductsReviews = async (req, res) => {
+  try {
+    const productsReviews = await productReviewModel
+      .find()
+      .select("-__v -updatedAt");
+    if (productsReviews.length < 0) {
+      return res.status(responseStatusCode.NOT_FOUND).json({
+        status: responseStatusText.ERROR,
+        message: "No review data here...!",
+      });
+    }
+    return res.status(responseStatusCode.SUCCESS).json({
+      status: responseStatusText.SUCCESS,
+      message: "All review data here...!",
+      productsReviews,
+    });
+  } catch (error) {
+    console.log("🚀 ~ exports.getAllProductsReviews= ~ error:", error);
+    return res.status(responseStatusCode.INTERNAL_SERVER).json({
+      status: responseStatusText.ERROR,
+      message: error.message,
+    });
+  }
+};
+
+// Delete product review by Admin using reviewId
+exports.deleteProductReview = async (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const productsReviews = await productReviewModel.updateOne(
+      { _id: new mongoose.Types.ObjectId(reviewId) },
+      { $set: { isDeleted: true } }
+    );
+    return res.status(responseStatusCode.SUCCESS).json({
+      status: responseStatusText.SUCCESS,
+      message: "Your review is deleted successfully...!",
+      productsReviews,
+    });
+  } catch (error) {
+    console.log("🚀 ~ exports.deleteProductReview ~ error:", error);
     return res.status(responseStatusCode.INTERNAL_SERVER).json({
       status: responseStatusText.ERROR,
       message: error.message,

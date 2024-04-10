@@ -14,3 +14,10 @@ exports.addProductValidation = joi.object({
     productTags: joi.string().required(),
     categoryId: joi.string().required(),
 })
+
+exports.addProductReviewValidation = joi.object({
+    name: joi.string().required(),
+    email: joi.string().email().lowercase().required(),
+    message: joi.string().required(),
+    productId: joi.string().required(),
+})

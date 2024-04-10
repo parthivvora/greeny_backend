@@ -51,16 +51,14 @@ exports.getAllCommentData = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { status } = req.query;
-    
     await commentModel.updateOne(
       { _id: new mongoose.Types.ObjectId(commentId) },
-      { $set: { isDeleted: status } },
+      { $set: { isDeleted: true } },
       { new: true }
     );
     return res.status(responseStatusCode.SUCCESS).json({
       status: responseStatusText.SUCCESS,
-      message: "Comments is updated successfully...!",
+      message: "Your comment is deleted successfully...!",
     });
   } catch (error) {
     console.log("🚀 ~ exports.deleteComment ~ error:", error);
